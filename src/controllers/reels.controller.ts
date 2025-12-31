@@ -1,0 +1,51 @@
+import { Request, Response } from 'express';
+import * as ReelsService from '../services/reels.service';
+
+const stripShopPrivateFields = (shop: any) => {
+  if (!shop) return shop;
+  const { authUserId, requiresEmailFix, ...rest } = shop;
+  return rest;
+};
+
+const sanitizeReelPayload = (payload: any) => {
+  if (!payload) return payload;
+  const sanitizeOne = (reel: any) => {
+    if (reel?.shop) {
+      reel.shop = stripShopPrivateFields(reel.shop);
+    }
+    return reel;
+  };
+  if (Array.isArray(payload)) return payload.map(sanitizeOne);
+  return sanitizeOne(payload);
+};
+
+export const getActiveReels = async (req: Request, res: Response) => {
+  const data = await ReelsService.getActiveReels();
+  res.json(sanitizeReelPayload(data));
+};
+
+export const getAllReelsAdmin = async (req: Request, res: Response) => {
+  const data = await ReelsService.getAllReelsAdmin();
+  res.json(sanitizeReelPayload(data));
+};
+
+export const createReel = async (req: Request, res: Response) => {
+  const { shopId, url, platform } = req.body;
+  const data = await ReelsService.createReel(shopId, url, platform);
+  res.json(sanitizeReelPayload(data));
+};
+
+export const hideReel = async (req: Request, res: Response) => {
+  const data = await ReelsService.hideReel(req.params.id);
+  res.json(sanitizeReelPayload(data));
+};
+
+export const reactivateReel = async (req: Request, res: Response) => {
+  const data = await ReelsService.reactivateReel(req.params.id);
+  res.json(sanitizeReelPayload(data));
+};
+
+export const registerView = async (req: Request, res: Response) => {
+  const data = await ReelsService.registerView(req.params.id);
+  res.json(data);
+};
